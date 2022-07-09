@@ -2,40 +2,49 @@
 using namespace std;
 typedef long long int ll;
 vector<pair<int, int>>positions(0);
+vector<bool>diag_left(15, false);
+vector<bool>diag_right(15, false);
+vector<bool>cols(16,false);
+bool reserved[8][8];
+//during the recursion he made a running variable in the scenario that holds the status of what happened in the past , rather htan checking 
+//again and again ! Nte that this is a global not passed through the recursion again and again, only the dependent varaible (in this case the row) is passed into the recursion 
+
 ll num = 0;
-bool isvalid(ll i, ll j, vector<pair<int, int>>positions){
-    for (auto &p : positions){
-        if( i == p.first || j == p.second || i - p.first == j - p.second){
-            return false;
-        }
+void search_pos(ll row){
+    if(row == 8){
+        num++;
+        return;
     }
-    return true;
-}
-void num_of_ways(vector<vector<char>> & chessboard, ll row_index, ll pos_onwards){
-    for (ll i = row_index ; i < chessboard[0].size(); i++){
-        bool flag = false;
-        for (int j = pos_onwards; j< chessboard[0].size(); j++){
-            if(isvalid(i , j , positions) && chessboard[i][j] != '*'){
-                positions.push_back(make_pair(i, j));
-                flag = true;
-                num_of_ways(chessboard, row_index + 1, 0);
+    else{
+        for(int col = 0; col < 8; col++){
+            if(cols[col] || diag_left[row - col + 7] || diag_right[row + col] || reserved[row][col]){
+                continue;
+            }
+            else{
+                //try him out 
+                cols[col] = diag_left[row - col + 7] = diag_right[row + col] = true;
+                search_pos(row + 1);
+                //climb up the tree after num has been done or you have failed in a particular stage of the recursion
+                cols[col] = diag_left[row - col + 7] = diag_right[row + col] = false;
             }
         }
-        if(flag == false){
-            pair<int, int> pos_last = positions.back();
-            int j_last = pos_last.second;
-            positions.pop_back();
-            num_of_ways(chessboard, row_index- 1, j_last + 1);
-        }
-    }
-    if(row_index == chessboard[0].size()){
-        num ++ ;
     }
 }
 int main()
 {
-    vector<vector<char>>chessboard(8, vector<char>(8, '.'));
-    num_of_ways(chessboard, 0, 0);
+    for (int i =0; i< 8; i++){
+        for (int j =0; j<8; j++){
+            char x;
+            cin>>x;
+            if(x == '.'){
+                reserved[i][j] = false;
+            }
+            else{
+                reserved[i][j] = true;
+            }
+        }
+    }
+    search_pos(0); 
     cout<<num<<endl;
     return 0;
 }
